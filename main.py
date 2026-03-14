@@ -74,7 +74,14 @@ def main() -> None:
             print(f"Unknown command: {cmd_name}")
             continue
 
-        print(f"\n{handler(*parts[1:])}\n")
+        try:
+            result = handler(*parts[1:])
+        except ValueError as exc:
+            print(f"\n  Invalid input: {exc}")
+            print(f"  Usage: {cmd_name} — {handler.__doc__}\n")
+            continue
+
+        print(f"\n{result}\n")
 
 
 if __name__ == "__main__":

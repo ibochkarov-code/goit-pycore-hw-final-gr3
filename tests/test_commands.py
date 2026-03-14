@@ -1,7 +1,10 @@
+import pytest
+
 from cli.commands import (
     command,
     default_commands,
     handle_echo,
+    handle_greet,
     handle_help,
     handle_quit,
 )
@@ -22,6 +25,15 @@ def test_handle_echo_returns_numbered_args() -> None:
 
 def test_handle_echo_no_args() -> None:
     assert handle_echo() == "(no arguments)"
+
+
+def test_handle_greet_with_name() -> None:
+    assert handle_greet("Alice") == "  Hello, Alice!"
+
+
+def test_handle_greet_without_name_raises() -> None:
+    with pytest.raises(ValueError, match="name is required"):
+        handle_greet()
 
 
 def test_handle_quit_returns_farewell() -> None:

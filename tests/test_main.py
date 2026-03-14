@@ -90,6 +90,23 @@ def test_unmatched_quotes(monkeypatch, capsys) -> None:
     assert "Invalid input: unmatched quotes." in output
 
 
+def test_greet_command(monkeypatch, capsys) -> None:
+    inputs = iter(["greet Alice", "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main()
+    output = capsys.readouterr().out
+    assert "Hello, Alice!" in output
+
+
+def test_greet_without_name_shows_usage(monkeypatch, capsys) -> None:
+    inputs = iter(["greet", "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main()
+    output = capsys.readouterr().out
+    assert "Invalid input: name is required" in output
+    assert "Usage: greet" in output
+
+
 def test_greeting_includes_all_sections(monkeypatch, capsys) -> None:
     monkeypatch.setattr("builtins.input", lambda _: "quit")
     main()

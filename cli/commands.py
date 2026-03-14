@@ -31,6 +31,14 @@ def handle_echo(*args: str) -> str:
     return "\n".join(lines) if lines else "(no arguments)"
 
 
+@command("Greet by name. Usage: greet <name>")
+def handle_greet(*args: str) -> str:
+    """Greet the given person."""
+    if not args:
+        raise ValueError("name is required")
+    return f"  Hello, {args[0]}!"
+
+
 @command("Exit the assistant bot.")
 def handle_quit() -> str:
     """Return a farewell message."""
@@ -41,6 +49,7 @@ def default_commands() -> dict[str, Callable]:
     """Default command registry."""
     return {
         "echo": handle_echo,
+        "greet": handle_greet,
         "help": handle_help,
         "quit": handle_quit,
     }
