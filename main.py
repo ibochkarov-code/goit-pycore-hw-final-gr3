@@ -1,4 +1,5 @@
 import argparse
+import difflib
 import os
 import shlex
 
@@ -83,7 +84,13 @@ def main(argv: list[str] | None = None) -> None:
 
         handler = commands.get(cmd_name)
         if handler is None:
-            print(f"{colors.ERROR}Unknown command: {cmd_name}{colors.RESET}")
+            msg = f"Unknown command: {cmd_name}"
+            matches = difflib.get_close_matches(
+                cmd_name, commands.keys(), n=1, cutoff=0.6
+            )
+            if matches:
+                msg += f". Did you mean: {matches[0]}?"
+            print(f"{colors.ERROR}{msg}{colors.RESET}")
             continue
 
         try:

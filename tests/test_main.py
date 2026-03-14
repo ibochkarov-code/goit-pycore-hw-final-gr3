@@ -64,6 +64,14 @@ def test_unknown_command(monkeypatch, capsys) -> None:
     assert "Unknown command: foobar" in output
 
 
+def test_unknown_command_suggests_similar(monkeypatch, capsys) -> None:
+    inputs = iter(["greeet", "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main([])
+    output = capsys.readouterr().out
+    assert "Did you mean: greet?" in output
+
+
 def test_eof_exits_gracefully(monkeypatch, capsys) -> None:
     def raise_eof(_: str) -> str:
         raise EOFError
