@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -eu
+
+# Check-only hook: this must not modify files.
+# Keep the heavier checks here so commits stay fast.
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv is required to run pre-push checks." >&2
+  echo "Install uv: https://docs.astral.sh/uv/getting-started/installation/" >&2
+  exit 1
+fi
+
+echo "[pre-push] pytest"
+uv run pytest

@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+set -eu
+
+# Check-only hook: this must not modify files.
+# It ensures the codebase is:
+# - formatted (ruff formatter in --check mode)
+# - lint-clean (ruff check)
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv is required to run pre-commit checks." >&2
+  echo "Install uv: https://docs.astral.sh/uv/getting-started/installation/" >&2
+  exit 1
+fi
+
+echo "[pre-commit] ruff format --check"
+uv run ruff format --check .
+
+echo "[pre-commit] ruff check"
+uv run ruff check .
