@@ -3,12 +3,12 @@ import pytest
 from cli.colors import make_scheme
 from cli.commands import (
     command,
-    default_commands,
     handle_echo,
     handle_greet,
     handle_help,
     handle_quit,
 )
+from main import AddressBook, bootstrap_commands
 
 _COLORS = make_scheme(no_color=False)
 
@@ -45,7 +45,7 @@ def test_handle_quit_returns_farewell() -> None:
 
 
 def test_handle_help_lists_all_commands() -> None:
-    commands = default_commands(_COLORS)
+    commands = bootstrap_commands(_COLORS, AddressBook())
     result = handle_help(commands, colors=_COLORS)
     assert "Available commands:" in result
     assert "help" in result

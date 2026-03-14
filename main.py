@@ -2,9 +2,12 @@ import argparse
 import difflib
 import os
 import shlex
+from collections.abc import Callable
+from functools import partial
+from typing import Any
 
 from cli.colors import ColorScheme, make_scheme
-from cli.commands import default_commands, handle_help, handle_quit
+from cli.commands import handle_echo, handle_greet, handle_help, handle_quit
 
 
 class AddressBook:
@@ -61,6 +64,49 @@ def format_team(name: str, members: list[str], colors: ColorScheme) -> str:
     return "\n".join(lines)
 
 
+def _bind(func: Callable, **kwargs: Any) -> Callable:
+    """Create a partial that preserves the original docstring."""
+    bound = partial(func, **kwargs)
+    bound.__doc__ = func.__doc__
+    return bound
+
+
+def bootstrap_commands(
+    colors: ColorScheme, book: AddressBook,
+) -> dict[str, Callable]:
+    """Build the command registry.
+
+    To add a new command:
+      1. Define a handler in handlers/ (see README for file layout):
+
+            # handlers/contact_handlers.py
+            def add_contact(*args: str, book: AddressBook) -> str:
+                if len(args) < 2:
+                    raise ValueError("name and phone are required")
+                name, phone = args[0], args[1]
+                # ... add to book ...
+                return f"Added {name}"
+
+      2. Import the handler here and register it with _bind:
+
+            from handlers.contact_handlers import add_contact
+            ...
+            "add": _bind(add_contact, book=book),
+
+      Dependencies like ``book`` and ``colors`` are injected via _bind
+      so the REPL can call every handler as ``handler(*user_args)``.
+    """
+    return {
+        "echo": handle_echo,
+        "greet": _bind(handle_greet, colors=colors),
+        "help": _bind(handle_help, colors=colors),
+        "quit": _bind(handle_quit, colors=colors),
+        # Example registrations (uncomment when handlers exist):
+        # "add": _bind(handle_add, book=book),
+        # "show": _bind(handle_show, book=book, colors=colors),
+    }
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=TITLE)
     parser.add_argument(
@@ -71,7 +117,7 @@ def main(argv: list[str] | None = None) -> None:
     colors = make_scheme(no_color=args.no_color or "NO_COLOR" in os.environ)
     storage = Storage()
     book = storage.load()
-    commands = default_commands(colors)
+    commands = bootstrap_commands(colors, book)
 
     print()
     print(format_title(TITLE, colors))

@@ -1,8 +1,9 @@
 from collections.abc import Callable
-from functools import partial
 from typing import Any
 
 from cli.colors import ColorScheme
+
+__all__ = ["command", "handle_echo", "handle_greet", "handle_help", "handle_quit"]
 
 
 def command(help_text: str) -> Callable[[Callable], Callable]:
@@ -48,20 +49,3 @@ def handle_greet(*args: str, colors: ColorScheme) -> str:
 def handle_quit(*, colors: ColorScheme) -> str:
     """Return a farewell message."""
     return f"{colors.FAREWELL}Good bye!{colors.RESET}"
-
-
-def _bind(func: Callable, **kwargs: Any) -> Callable:
-    """Create a partial that preserves the original docstring."""
-    bound = partial(func, **kwargs)
-    bound.__doc__ = func.__doc__
-    return bound
-
-
-def default_commands(colors: ColorScheme) -> dict[str, Callable]:
-    """Default command registry with colors bound to handlers that need them."""
-    return {
-        "echo": handle_echo,
-        "greet": _bind(handle_greet, colors=colors),
-        "help": _bind(handle_help, colors=colors),
-        "quit": _bind(handle_quit, colors=colors),
-    }
