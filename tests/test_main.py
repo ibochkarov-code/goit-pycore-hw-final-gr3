@@ -50,6 +50,32 @@ def test_eof_exits_gracefully(monkeypatch, capsys) -> None:
     assert "Good bye!" in output
 
 
+def test_echo_command(monkeypatch, capsys) -> None:
+    inputs = iter(["echo hello world", "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main()
+    output = capsys.readouterr().out
+    assert "1: hello" in output
+    assert "2: world" in output
+
+
+def test_echo_with_quoted_args(monkeypatch, capsys) -> None:
+    inputs = iter(['echo "hello world" foo', "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main()
+    output = capsys.readouterr().out
+    assert "1: hello world" in output
+    assert "2: foo" in output
+
+
+def test_unmatched_quotes(monkeypatch, capsys) -> None:
+    inputs = iter(['echo "hello', "quit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    main()
+    output = capsys.readouterr().out
+    assert "Invalid input: unmatched quotes." in output
+
+
 def test_greeting_includes_help_listing(monkeypatch, capsys) -> None:
     monkeypatch.setattr("builtins.input", lambda _: "quit")
     main()

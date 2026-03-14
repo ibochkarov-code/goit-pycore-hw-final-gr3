@@ -1,4 +1,10 @@
-from cli.commands import command, default_commands, handle_help, handle_quit
+from cli.commands import (
+    command,
+    default_commands,
+    handle_echo,
+    handle_help,
+    handle_quit,
+)
 
 
 def test_command_decorator_sets_docstring() -> None:
@@ -8,6 +14,14 @@ def test_command_decorator_sets_docstring() -> None:
 
     assert dummy.__doc__ == "Test help text."
     assert dummy() == 42
+
+
+def test_handle_echo_returns_numbered_args() -> None:
+    assert handle_echo("hello", "world") == "  1: hello\n  2: world"
+
+
+def test_handle_echo_no_args() -> None:
+    assert handle_echo() == "(no arguments)"
 
 
 def test_handle_quit_returns_farewell() -> None:

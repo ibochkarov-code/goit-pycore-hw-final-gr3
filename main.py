@@ -1,3 +1,5 @@
+import shlex
+
 from cli.commands import default_commands, handle_help, handle_quit
 
 
@@ -18,7 +20,12 @@ def main() -> None:
         if not user_input:
             continue
 
-        parts = user_input.split()
+        try:
+            parts = shlex.split(user_input)
+        except ValueError:
+            print("Invalid input: unmatched quotes.")
+            continue
+
         cmd_name = parts[0].lower()
 
         if cmd_name in ("quit", "exit", "close"):

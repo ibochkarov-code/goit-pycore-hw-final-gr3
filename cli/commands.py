@@ -24,6 +24,13 @@ def handle_help(commands: dict[str, Callable]) -> str:
     return "\n".join(lines)
 
 
+@command("Echo arguments back (test command).")
+def handle_echo(*args: str) -> str:
+    """Print all received arguments."""
+    lines = [f"  {i}: {arg}" for i, arg in enumerate(args, 1)]
+    return "\n".join(lines) if lines else "(no arguments)"
+
+
 @command("Exit the assistant bot.")
 def handle_quit() -> str:
     """Return a farewell message."""
@@ -33,6 +40,7 @@ def handle_quit() -> str:
 def default_commands() -> dict[str, Callable]:
     """Default command registry."""
     return {
+        "echo": handle_echo,
         "help": handle_help,
         "quit": handle_quit,
     }
