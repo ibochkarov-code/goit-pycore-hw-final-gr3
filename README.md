@@ -30,7 +30,7 @@
 
 ### Збереження даних
 
-- Дані зберігаються у файлі на диску (pickle або JSON)
+- Дані зберігаються у файлі на диску (JSON)
 - Перезапуск програми не видаляє дані
 
 ---
@@ -43,12 +43,12 @@
 
 | # | Завдання | Файл |
 |---|----------|------|
-| 1 | Клас `Field` (базовий) та похідні: `Name`, `Phone`, `Email`, `Address`, `Birthday` | `models/fields.py` |
+| 1 | Клас `Field` (базовий) та похідні: `Name`, `Phone`, `Email`, `Birthday` | `models/fields.py` |
 | 2 | Валідація `Phone` та `Email` | `models/fields.py` |
 | 3 | Клас `Record` — один контакт з усіма полями | `models/record.py` |
-| 4 | Клас `AddressBook` — колекція контактів (`add_record`, `find`, `delete`, `get_upcoming_birthdays`) | `models/address_book.py` |
-| 5 | Клас `Note` та `NoteBook` — колекція нотаток (`add_note`, `find`, `edit`, `delete`) | `models/note.py`, `models/notebook.py` |
-| 6 | Збереження/завантаження даних на диск | `storage.py` |
+| 4 | Клас `AddressBook` — колекція контактів (`add_record`, `find`, `delete`, `search`) | `models/address_book.py` |
+| 5 | Клас `Note` та `NoteBook` — колекція нотаток з підтримкою тегів | `models/note.py`, `models/notebook.py` |
+| 6 | Збереження/завантаження даних на диск (JSON) | `storage.py` |
 
 ### Розробник 2 — Обробники команд (handlers)
 
@@ -56,14 +56,14 @@
 
 | # | Завдання | Файл |
 |---|----------|------|
-| 1 | `add_contact` — додавання контакту | `handlers/contact_handlers.py` |
-| 2 | `change_contact` — редагування контакту | `handlers/contact_handlers.py` |
-| 3 | `delete_contact` — видалення контакту | `handlers/contact_handlers.py` |
-| 4 | `search_contacts` — пошук контактів | `handlers/contact_handlers.py` |
-| 5 | `show_all_contacts` — показ усіх контактів | `handlers/contact_handlers.py` |
-| 6 | `show_birthdays` — дні народження через N днів | `handlers/contact_handlers.py` |
-| 7 | `add_note`, `edit_note`, `delete_note`, `search_notes`, `show_all_notes` | `handlers/note_handlers.py` |
-| 8 | Декоратор `input_error` для обробки помилок | `handlers/decorators.py` |
+| 1 | `handle_add_contact` — додавання контакту | `handlers/contact_handlers.py` |
+| 2 | `handle_change_phone`, `handle_remove_phone` — зміна/видалення телефону | `handlers/contact_handlers.py` |
+| 3 | `handle_delete_contact` — видалення контакту | `handlers/contact_handlers.py` |
+| 4 | `handle_search` — пошук контактів за іменем, телефоном або email | `handlers/contact_handlers.py` |
+| 5 | `handle_show_all` — показ усіх контактів | `handlers/contact_handlers.py` |
+| 6 | `handle_birthdays` — дні народження протягом 7 днів | `handlers/contact_handlers.py` |
+| 7 | Обробники email та birthday (add/show/change/remove) | `handlers/contact_handlers.py` |
+| 8 | `handle_add_note`, `handle_edit_note`, `handle_delete_note`, `handle_search_notes`, `handle_show_all_notes` | `handlers/note_handlers.py` |
 
 ### Розробник 3 — CLI-інтерфейс (головна програма)
 
@@ -71,11 +71,11 @@
 
 | # | Завдання | Файл |
 |---|----------|------|
-| 1 | Головний цикл програми: читання команд, виклик обробників | `main.py` |
-| 2 | Парсинг введення користувача (`parse_input`) | `cli/parser.py` |
-| 3 | Команда `help` — показ списку доступних команд | `main.py` |
-| 4 | Красивий формат виводу контактів і нотаток | `cli/formatter.py` |
-| 5 | Завантаження даних при старті, збереження при виході | `main.py` |
+| 1 | Головний цикл програми: REPL, парсинг вводу, підказки команд | `cli/repl.py` |
+| 2 | Реєстрація та маршрутизація команд | `cli/commands.py` |
+| 3 | Кольорова схема виводу, підтримка `--no-color` | `cli/colors.py` |
+| 4 | Клас `UsageError` для помилок введення | `cli/errors.py` |
+| 5 | Точка входу, завантаження/збереження даних, bootstrap команд | `main.py` |
 
 ---
 
@@ -92,24 +92,43 @@
 
 ```
 goit-pycore-hw-final-gr3/
-├── main.py                  # Точка входу (Розробник 3)
-├── storage.py               # Збереження даних (Розробник 1)
+├── main.py                  # Точка входу
+├── storage.py               # Збереження даних (JSON)
+├── pyproject.toml           # Залежності та налаштування проєкту
+├── uv.lock                  # Lock-файл залежностей
 ├── models/
 │   ├── __init__.py
-│   ├── fields.py            # Поля та валідація (Розробник 1)
-│   ├── record.py            # Клас Record (Розробник 1)
-│   ├── address_book.py      # Клас AddressBook (Розробник 1)
-│   ├── note.py              # Клас Note (Розробник 1)
-│   └── notebook.py          # Клас NoteBook (Розробник 1)
+│   ├── fields.py            # Поля та валідація
+│   ├── record.py            # Клас Record
+│   ├── address_book.py      # Клас AddressBook
+│   ├── note.py              # Клас Note
+│   └── notebook.py          # Клас NoteBook
 ├── handlers/
 │   ├── __init__.py
-│   ├── contact_handlers.py  # Обробники контактів (Розробник 2)
-│   ├── note_handlers.py     # Обробники нотаток (Розробник 2)
-│   └── decorators.py        # Декоратор помилок (Розробник 2)
+│   ├── contact_handlers.py  # Обробники контактів
+│   └── note_handlers.py     # Обробники нотаток
 ├── cli/
 │   ├── __init__.py
-│   ├── parser.py            # Парсинг команд (Розробник 3)
-│   └── formatter.py         # Формат виводу (Розробник 3)
+│   ├── colors.py            # Кольорова схема виводу
+│   ├── commands.py          # Реєстрація команд
+│   ├── errors.py            # Обробка помилок (UsageError)
+│   └── repl.py              # Головний REPL-цикл та парсинг вводу
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_address_book.py
+│   ├── test_colors.py
+│   ├── test_commands.py
+│   ├── test_contact_handlers.py
+│   ├── test_fields.py
+│   ├── test_main.py
+│   ├── test_note_handlers.py
+│   ├── test_notebook.py
+│   ├── test_record.py
+│   └── test_storage.py
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI-пайплайн
 └── README.md
 ```
 
@@ -246,39 +265,60 @@ main ─────────────────────────
 
 ## Команди помічника (help)
 
+### Загальні
+
 | Команда | Опис |
 |---|---|
-| `add-contact` | Додати новий контакт |
-| `search-contact` | Пошук контактів |
-| `edit-contact` | Редагувати контакт |
-| `delete-contact` | Видалити контакт |
-| `all-contacts` | Показати всі контакти |
-| `birthdays` | Дні народження через N днів |
+| `hello` | Привітання |
+| `help` | Показати довідку |
+| `quit` / `exit` / `close` | Вийти з програми |
+
+### Контакти
+
+| Команда | Опис |
+|---|---|
+| `add` | Додати контакт або телефон |
+| `delete` | Видалити контакт |
+| `all` | Показати всі контакти |
+| `search` | Пошук контактів |
+| `phone` | Показати телефони контакту |
+| `change-phone` | Змінити номер телефону |
+| `remove-phone` | Видалити номер телефону |
+| `add-birthday` | Додати день народження |
+| `show-birthday` | Показати день народження |
+| `change-birthday` | Змінити день народження |
+| `remove-birthday` | Видалити день народження |
+| `birthdays` | Дні народження протягом 7 днів |
+| `add-email` | Додати email |
+| `show-email` | Показати email |
+| `change-email` | Змінити email |
+| `remove-email` | Видалити email |
+
+### Нотатки
+
+| Команда | Опис |
+|---|---|
 | `add-note` | Додати нотатку |
-| `search-note` | Пошук нотаток |
 | `edit-note` | Редагувати нотатку |
 | `delete-note` | Видалити нотатку |
+| `search-notes` | Пошук нотаток |
 | `all-notes` | Показати всі нотатки |
-| `help` | Показати довідку |
-| `exit` / `close` | Вийти з програми |
 
 ---
 
-## Бонусні завдання — ТІЛЬКИ ЯКЩО ЗАЛИШИВСЯ ЧАС
+## Бонусні завдання
 
-Ці завдання не обов'язкові. Беріться за них тільки після того, як основний функціонал повністю працює.
+### Бонус 1: Теги для нотаток — частково реалізовано
 
-### Бонус 1: Теги для нотаток
+Моделі `Note` та `NoteBook` підтримують теги (зберігання, пошук). CLI-команди для керування тегами (`add-tag`, `sort-notes`) ще не реалізовані.
 
-- Додавання "тегів" (ключових слів) до нотаток
-- Пошук та сортування нотаток за тегами
-- Нові команди: `add-tag`, `sort-notes`
-- **Хто робить:** Розробник 1 (моделі Note/NoteBook) + Розробник 2 (обробники)
+- **Що зроблено:** модельний шар (Розробник 1)
+- **Що залишилось:** обробники та CLI-команди (Розробник 2 + 3)
 
-### Бонус 2: Інтелектуальний аналіз команд
+### Бонус 2: Інтелектуальний аналіз команд — реалізовано
 
-- Якщо користувач ввів нерозпізнану команду — запропонувати найближчу (наприклад, через `difflib.get_close_matches`)
-- Підказка: "Можливо, ви мали на увазі: ..."
-- **Хто робить:** Розробник 3 (новий файл `cli/suggest.py`)
+Якщо користувач ввів нерозпізнану команду, програма пропонує найближчу за допомогою `difflib.get_close_matches` (cutoff 0.6).
+
+- **Реалізація:** `cli/repl.py`
 
 ---
