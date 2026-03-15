@@ -4,7 +4,8 @@ from cli.commands import (
     handle_help,
     handle_quit,
 )
-from main import AddressBook, bootstrap_commands
+from main import bootstrap_commands
+from models.address_book import AddressBook
 from models.notebook import NoteBook
 
 _COLORS = make_scheme(no_color=False)

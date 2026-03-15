@@ -33,33 +33,9 @@ from handlers.note_handlers import (
     handle_search_notes,
     handle_show_all_notes,
 )
-from models.address_book import AddressBook as _AddressBookBase
+from models.address_book import AddressBook
 from models.notebook import NoteBook
-
-
-class AddressBook(_AddressBookBase):
-    """AddressBook with change tracking for auto-save."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._changed = False
-
-    def is_changed(self) -> bool:
-        return self._changed
-
-    def mark_saved(self) -> None:
-        self._changed = False
-
-
-class Storage:
-    """Stub — replace with real implementation."""
-
-    def load(self) -> AddressBook:
-        return AddressBook()
-
-    def save(self, book: AddressBook) -> None:
-        book.mark_saved()
-
+from storage import load_contacts, load_notes, save_contacts, save_notes
 
 TITLE = "Assistant Bot"
 TEAM_NAME = "Team #3"
@@ -168,10 +144,13 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     colors = make_scheme(no_color=args.no_color or "NO_COLOR" in os.environ)
-    storage = Storage()
-    book = storage.load()
-    notebook = NoteBook()
+    book = load_contacts()
+    notebook = load_notes()
     commands = bootstrap_commands(colors, book, notebook)
+
+    def on_save() -> None:
+        save_contacts(book)
+        save_notes(notebook)
 
     print()
     print(format_title(TITLE, colors))
@@ -181,7 +160,7 @@ def main(argv: list[str] | None = None) -> None:
     print(handle_help(commands, colors=colors))
     print()
 
-    run_repl(commands, colors, book, storage)
+    run_repl(commands, colors, on_save)
 
 
 if __name__ == "__main__":
