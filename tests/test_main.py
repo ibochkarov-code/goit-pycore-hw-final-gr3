@@ -125,7 +125,7 @@ def test_greet_without_name_shows_usage(monkeypatch, capsys) -> None:
     main([])
     output = capsys.readouterr().out
     assert "Invalid input: name is required" in output
-    assert "Usage: greet" in output
+    assert "Usage: greet <name>" in output
 
 
 def test_greeting_includes_all_sections(monkeypatch, capsys) -> None:

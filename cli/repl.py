@@ -63,8 +63,7 @@ def run_repl(
             result = handler(*parts[1:])
         except ValueError as exc:
             print(f"\n  {colors.ERROR}Invalid input: {exc}{colors.RESET}")
-            usage = f"{cmd_name} — {handler.__doc__}"
-            print(f"  {colors.USAGE}Usage: {usage}{colors.RESET}\n")
+            print(f"  {colors.USAGE}{handler.__doc__}{colors.RESET}\n")
             continue
 
         print(f"\n{result}\n")
