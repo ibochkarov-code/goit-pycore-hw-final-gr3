@@ -95,24 +95,25 @@ class TestLoadContacts:
 class TestSaveNotes:
     def test_creates_file(self) -> None:
         nb = NoteBook()
-        nb.add_note("hello")
+        nb.add_note("Groceries", "Buy milk")
         save_notes(nb)
         assert storage_mod.NOTES_FILE.exists()
 
     def test_writes_valid_json(self) -> None:
         nb = NoteBook()
-        nb.add_note("hello", tags=["a", "b"])
+        nb.add_note("Groceries", "Buy milk", tags="food shopping")
         save_notes(nb)
 
         data = json.loads(storage_mod.NOTES_FILE.read_text(encoding="utf-8"))
         assert len(data) == 1
-        assert data[0]["text"] == "hello"
-        assert data[0]["tags"] == ["a", "b"]
+        assert data[0]["title"] == "Groceries"
+        assert data[0]["text"] == "Buy milk"
+        assert data[0]["tags"] == ["food", "shopping"]
 
     def test_multiple_notes(self) -> None:
         nb = NoteBook()
-        nb.add_note("first")
-        nb.add_note("second", tags=["x"])
+        nb.add_note("First", "text one")
+        nb.add_note("Second", "text two", tags="work")
         save_notes(nb)
 
         data = json.loads(storage_mod.NOTES_FILE.read_text(encoding="utf-8"))
@@ -123,6 +124,14 @@ class TestSaveNotes:
         data = json.loads(storage_mod.NOTES_FILE.read_text(encoding="utf-8"))
         assert data == []
 
+    def test_no_tags_omitted(self) -> None:
+        nb = NoteBook()
+        nb.add_note("Plain", "no tags here")
+        save_notes(nb)
+
+        data = json.loads(storage_mod.NOTES_FILE.read_text(encoding="utf-8"))
+        assert "tags" not in data[0]
+
 
 class TestLoadNotes:
     def test_missing_file_returns_empty(self) -> None:
@@ -131,23 +140,26 @@ class TestLoadNotes:
 
     def test_roundtrip(self) -> None:
         nb = NoteBook()
-        nb.add_note("Buy milk", tags=["shopping"])
-        nb.add_note("Call Alice")
+        nb.add_note("Groceries", "Buy milk", tags="shopping")
+        nb.add_note("Call", "Call Alice")
         save_notes(nb)
 
         loaded = load_notes()
         assert len(loaded) == 2
+        assert loaded.notes[0].title == "Groceries"
         assert loaded.notes[0].text == "Buy milk"
         assert loaded.notes[0].tags == ["shopping"]
+        assert loaded.notes[1].title == "Call"
         assert loaded.notes[1].text == "Call Alice"
         assert loaded.notes[1].tags == []
 
     def test_preserves_unicode(self) -> None:
         nb = NoteBook()
-        nb.add_note("Привіт світ", tags=["тест"])
+        nb.add_note("Нотатка", "Привіт світ", tags="тест")
         save_notes(nb)
 
         loaded = load_notes()
+        assert loaded.notes[0].title == "Нотатка"
         assert loaded.notes[0].text == "Привіт світ"
         assert loaded.notes[0].tags == ["тест"]
 

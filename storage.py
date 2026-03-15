@@ -47,7 +47,12 @@ def load_contacts() -> AddressBook:
 
 def save_notes(notebook: NoteBook) -> None:
     """Serialize all notes to JSON."""
-    data = [{"text": note.text, "tags": note.tags} for note in notebook.notes]
+    data = []
+    for note in notebook.notes:
+        entry: dict = {"title": note.title, "text": note.text}
+        if note.tags:
+            entry["tags"] = note.tags
+        data.append(entry)
     NOTES_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=4), encoding="utf-8"
     )
@@ -61,5 +66,10 @@ def load_notes() -> NoteBook:
     except FileNotFoundError, json.JSONDecodeError:
         return notebook
     for item in data:
-        notebook.add_note(item.get("text", ""), item.get("tags", []))
+        tags = item.get("tags", [])
+        notebook.add_note(
+            title=item.get("title", ""),
+            text=item.get("text", ""),
+            tags=" ".join(tags) if tags else None,
+        )
     return notebook

@@ -28,12 +28,13 @@ from handlers.contact_handlers import (
 )
 from handlers.note_handlers import (
     handle_add_note,
+    handle_add_tags,
     handle_delete_note,
     handle_edit_note,
+    handle_remove_tag,
+    handle_rename_note,
     handle_search_notes,
     handle_show_all_notes,
-    handle_add_tags,
-    handle_remove_tag
 )
 from models.address_book import AddressBook
 from models.notebook import NoteBook
@@ -135,9 +136,9 @@ def bootstrap_commands(
         "edit-note": _bind(handle_edit_note, notebook=notebook),
         "search-notes": _bind(handle_search_notes, notebook=notebook),
         "all-notes": _bind(handle_show_all_notes, notebook=notebook),
+        "rename-note": _bind(handle_rename_note, notebook=notebook),
         "add-tags": _bind(handle_add_tags, notebook=notebook),
-        "delete-tags": _bind(handle_remove_tag, notebook=notebook),
-
+        "delete-tag": _bind(handle_remove_tag, notebook=notebook),
     }
 
 
