@@ -7,12 +7,40 @@ from typing import Any
 from cli.colors import ColorScheme, make_scheme
 from cli.commands import handle_echo, handle_greet, handle_help, handle_quit
 from cli.repl import run_repl
+from handlers.contact_handlers import (
+    handle_add_birthday,
+    handle_add_contact,
+    handle_add_email,
+    handle_birthdays,
+    handle_change_birthday,
+    handle_change_email,
+    handle_change_phone,
+    handle_delete_contact,
+    handle_remove_birthday,
+    handle_remove_email,
+    handle_remove_phone,
+    handle_search,
+    handle_show_all,
+    handle_show_birthday,
+    handle_show_email,
+    handle_show_phone,
+)
+from handlers.note_handlers import (
+    handle_add_note,
+    handle_delete_note,
+    handle_edit_note,
+    handle_search_notes,
+    handle_show_all_notes,
+)
+from models.address_book import AddressBook as _AddressBookBase
+from models.notebook import NoteBook
 
 
-class AddressBook:
-    """Stub — replace with real implementation."""
+class AddressBook(_AddressBookBase):
+    """AddressBook with change tracking for auto-save."""
 
     def __init__(self) -> None:
+        super().__init__()
         self._changed = False
 
     def is_changed(self) -> bool:
@@ -82,37 +110,54 @@ def _bind(func: Callable, **kwargs: Any) -> Callable:
 def bootstrap_commands(
     colors: ColorScheme,
     book: AddressBook,
+    notebook: NoteBook,
 ) -> dict[str, Callable]:
     """Build the command registry.
 
     To add a new command:
       1. Define a handler in handlers/ (see README for file layout):
 
-            # handlers/contact_handlers.py
-            def add_contact(*args: str, book: AddressBook) -> str:
-                if len(args) < 2:
-                    raise ValueError("name and phone are required")
-                name, phone = args[0], args[1]
-                # ... add to book ...
-                return f"Added {name}"
+            @command("Description. Usage: my-cmd <arg>")
+            def handle_my_cmd(*args: str, book: AddressBook) -> str:
+                ...
 
       2. Import the handler here and register it with _bind:
 
-            from handlers.contact_handlers import add_contact
-            ...
-            "add": _bind(add_contact, book=book),
+            "my-cmd": _bind(handle_my_cmd, book=book),
 
-      Dependencies like ``book`` and ``colors`` are injected via _bind
-      so the REPL can call every handler as ``handler(*user_args)``.
+      Dependencies like ``book``, ``notebook``, and ``colors`` are injected
+      via _bind so the REPL can call every handler as ``handler(*user_args)``.
     """
     return {
+        # Built-in commands
         "echo": handle_echo,
         "greet": _bind(handle_greet, colors=colors),
-        "help": _bind(handle_help, colors=colors),
+        "hello": _bind(handle_greet, colors=colors),
         "quit": _bind(handle_quit, colors=colors),
-        # Example registrations (uncomment when handlers exist):
-        # "add": _bind(handle_add, book=book),
-        # "show": _bind(handle_show, book=book, colors=colors),
+        "help": _bind(handle_help, colors=colors),
+        # Contact commands
+        "add": _bind(handle_add_contact, book=book),
+        "delete": _bind(handle_delete_contact, book=book),
+        "change-phone": _bind(handle_change_phone, book=book),
+        "remove-phone": _bind(handle_remove_phone, book=book),
+        "phone": _bind(handle_show_phone, book=book),
+        "all": _bind(handle_show_all, book=book),
+        "add-birthday": _bind(handle_add_birthday, book=book),
+        "show-birthday": _bind(handle_show_birthday, book=book),
+        "change-birthday": _bind(handle_change_birthday, book=book),
+        "remove-birthday": _bind(handle_remove_birthday, book=book),
+        "add-email": _bind(handle_add_email, book=book),
+        "show-email": _bind(handle_show_email, book=book),
+        "change-email": _bind(handle_change_email, book=book),
+        "remove-email": _bind(handle_remove_email, book=book),
+        "search": _bind(handle_search, book=book),
+        "birthdays": _bind(handle_birthdays, book=book),
+        # Note commands
+        "add-note": _bind(handle_add_note, notebook=notebook),
+        "delete-note": _bind(handle_delete_note, notebook=notebook),
+        "edit-note": _bind(handle_edit_note, notebook=notebook),
+        "search-notes": _bind(handle_search_notes, notebook=notebook),
+        "all-notes": _bind(handle_show_all_notes, notebook=notebook),
     }
 
 
@@ -126,7 +171,8 @@ def main(argv: list[str] | None = None) -> None:
     colors = make_scheme(no_color=args.no_color or "NO_COLOR" in os.environ)
     storage = Storage()
     book = storage.load()
-    commands = bootstrap_commands(colors, book)
+    notebook = NoteBook()
+    commands = bootstrap_commands(colors, book, notebook)
 
     print()
     print(format_title(TITLE, colors))

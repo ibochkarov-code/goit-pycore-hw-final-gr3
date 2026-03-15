@@ -1,4 +1,6 @@
 """Декоратор для обробки помилок введення користувача у handler-функціях."""
+
+
 def input_error(func):
     def inner(*args, **kwargs):
         try:
@@ -9,4 +11,5 @@ def input_error(func):
             return "Enter the required arguments."
         except KeyError:
             return "Contact not found."
+
     return inner
