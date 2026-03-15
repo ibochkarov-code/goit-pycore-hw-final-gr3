@@ -1,5 +1,5 @@
 from cli.commands import command
-from cli.errors import UsageError
+from cli.errors import AlreadyExistsError, NotFoundError, UsageError
 from models.notebook import NoteBook
 
 
@@ -23,8 +23,7 @@ def handle_add_note(*args: str, notebook: NoteBook) -> str:
     text = " ".join(args[1:])
 
     if not notebook.add_note(title=title, text=text):
-        return f"Note '{title}' already exists."
-
+        raise AlreadyExistsError(f"Note '{title}' already exists.")
     return f"Note '{title}' added."
 
 
@@ -42,8 +41,7 @@ def handle_delete_note(*args: str, notebook: NoteBook) -> str:
     title = args[0]
 
     if not notebook.delete_note(title):
-        return f"Note '{title}' not found."
-
+        raise NotFoundError(f"Note '{title}' not found.")
     return f"Note '{title}' deleted."
 
 
@@ -62,8 +60,7 @@ def handle_edit_note(*args: str, notebook: NoteBook) -> str:
     new_text = " ".join(args[1:])
 
     if not notebook.edit_note(title=title, new_text=new_text):
-        return f"Note '{title}' not found."
-
+        raise NotFoundError(f"Note '{title}' not found.")
     return f"Note '{title}' updated."
 
 
@@ -83,11 +80,11 @@ def handle_rename_note(*args: str, notebook: NoteBook) -> str:
 
     note = notebook.find_note_by_title(title)
     if note is None:
-        return f"Note '{title}' not found."
-
+        raise NotFoundError(f"Note '{title}' not found.")
     if not notebook.edit_note(title=title, new_title=new_title):
-        return f"Cannot rename note to '{new_title}'. It may already exist."
-
+        raise AlreadyExistsError(
+            f"Cannot rename note to '{new_title}'. It may already exist."
+        )
     return f"Note '{title}' renamed to '{new_title}'."
 
 
@@ -107,13 +104,8 @@ def handle_add_tags(*args: str, notebook: NoteBook) -> str:
 
     note = notebook.find_note_by_title(title)
     if note is None:
-        return f"Note '{title}' not found."
-
-    try:
-        note.add_tags(" ".join(tags))
-    except ValueError as error:
-        return str(error)
-
+        raise NotFoundError(f"Note '{title}' not found.")
+    note.add_tags(" ".join(tags))
     return f"Tags added to note '{title}'."
 
 
@@ -133,11 +125,9 @@ def handle_remove_tag(*args: str, notebook: NoteBook) -> str:
 
     note = notebook.find_note_by_title(title)
     if note is None:
-        return f"Note '{title}' not found."
-
+        raise NotFoundError(f"Note '{title}' not found.")
     if not note.remove_tag(tag):
-        return f"Tag '{tag}' not found in note '{title}'."
-
+        raise NotFoundError(f"Tag '{tag}' not found in note '{title}'.")
     return f"Tag '{tag}' removed from note '{title}'."
 
 

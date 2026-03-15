@@ -53,5 +53,6 @@ class TestColorScheme:
             "GREETING",
             "FAREWELL",
             "ROLE",
+            "SUCCESS",
         }
         assert set(ColorScheme.__dataclass_fields__) == expected

@@ -1,5 +1,5 @@
 from cli.commands import command
-from cli.errors import UsageError
+from cli.errors import AlreadyExistsError, NotFoundError, UsageError
 from models.address_book import AddressBook
 from models.record import Record
 
@@ -21,19 +21,18 @@ def handle_add_contact(*args: str, book: AddressBook) -> str:
         book.add_record(record)
         record.add_phone(phone)
         return "Contact added."
-    if record.add_phone(phone):
-        return "Contact updated."
-    return "Phone already exists."
+    if not record.add_phone(phone):
+        raise AlreadyExistsError("Phone already exists.")
+    return "Contact updated."
 
 
 @command("Delete a contact. Usage: delete <name>")
 def handle_delete_contact(*args: str, book: AddressBook) -> str:
     if not args:
         raise UsageError("name is required")
-    try:
-        book.delete_record(args[0])
-    except ValueError:
-        return "Contact not found."
+    if book.get_record(args[0]) is None:
+        raise NotFoundError("Contact not found.")
+    book.delete_record(args[0])
     return "Contact deleted."
 
 
@@ -45,7 +44,7 @@ def handle_change_phone(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(name)
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.edit_phone(old_phone, new_phone)
     return "Phone updated."
 
@@ -57,7 +56,7 @@ def handle_remove_phone(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.remove_phone(args[1])
     return "Phone removed."
 
@@ -69,7 +68,7 @@ def handle_show_phone(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     if not record.phones:
         return "No phone numbers for this contact."
     return "; ".join(p.value for p in record.phones)
@@ -92,7 +91,7 @@ def handle_add_birthday(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.edit_birthday(args[1])
     return "Birthday added."
 
@@ -104,9 +103,9 @@ def handle_show_birthday(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     if record.birthday is None:
-        return "Birthday not set."
+        raise NotFoundError("Birthday not set.")
     return record.birthday.value.strftime("%d.%m.%Y")
 
 
@@ -117,7 +116,7 @@ def handle_change_birthday(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.edit_birthday(args[1])
     return "Birthday updated."
 
@@ -129,7 +128,7 @@ def handle_remove_birthday(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.birthday = None
     return "Birthday removed."
 
@@ -141,7 +140,7 @@ def handle_add_email(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.edit_email(args[1])
     return "Email added."
 
@@ -153,9 +152,9 @@ def handle_show_email(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     if record.email is None:
-        return "Email not set."
+        raise NotFoundError("Email not set.")
     return record.email.value
 
 
@@ -166,7 +165,7 @@ def handle_change_email(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.edit_email(args[1])
     return "Email updated."
 
@@ -178,7 +177,7 @@ def handle_remove_email(*args: str, book: AddressBook) -> str:
 
     record = book.get_record(args[0])
     if record is None:
-        return "Contact not found."
+        raise NotFoundError("Contact not found.")
     record.email = None
     return "Email removed."
 

@@ -66,5 +66,5 @@ def run_repl(
             print(f"\n  {colors.ERROR}Error: {exc}{colors.RESET}\n")
             continue
 
-        print(f"\n{result}\n")
+        print(f"\n{colors.SUCCESS}{result}{colors.RESET}\n")
         on_save()

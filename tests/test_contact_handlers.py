@@ -2,7 +2,7 @@
 
 import pytest
 
-from cli.errors import UsageError
+from cli.errors import AlreadyExistsError, NotFoundError, UsageError
 from handlers.contact_handlers import (
     handle_add_birthday,
     handle_add_contact,
@@ -44,10 +44,8 @@ class TestAddContact:
         assert len(book.get_record("Alice").phones) == 2
 
     def test_add_duplicate_phone(self, book: AddressBook) -> None:
-        assert (
+        with pytest.raises(AlreadyExistsError, match="Phone already exists"):
             handle_add_contact("Alice", "0501234567", book=book)
-            == "Phone already exists."
-        )
 
     def test_no_args_raises(self) -> None:
         with pytest.raises(UsageError, match="name and phone"):
@@ -64,7 +62,8 @@ class TestDeleteContact:
         assert book.get_record("Alice") is None
 
     def test_delete_missing(self, book: AddressBook) -> None:
-        assert handle_delete_contact("Nobody", book=book) == "Contact not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_delete_contact("Nobody", book=book)
 
     def test_no_args_raises(self) -> None:
         with pytest.raises(UsageError, match="name is required"):
@@ -78,8 +77,8 @@ class TestChangePhone:
         assert book.get_record("Alice").phones[0].value == "0509999999"
 
     def test_missing_contact(self, book: AddressBook) -> None:
-        result = handle_change_phone("Nobody", "0501234567", "0509999999", book=book)
-        assert result == "Contact not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_change_phone("Nobody", "0501234567", "0509999999", book=book)
 
     def test_not_enough_args(self) -> None:
         with pytest.raises(UsageError):
@@ -92,10 +91,8 @@ class TestRemovePhone:
         assert book.get_record("Alice").phones == []
 
     def test_missing_contact(self, book: AddressBook) -> None:
-        assert (
+        with pytest.raises(NotFoundError, match="not found"):
             handle_remove_phone("Nobody", "0501234567", book=book)
-            == "Contact not found."
-        )
 
 
 class TestShowPhone:
@@ -109,7 +106,8 @@ class TestShowPhone:
         )
 
     def test_missing_contact(self, book: AddressBook) -> None:
-        assert handle_show_phone("Nobody", book=book) == "Contact not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_show_phone("Nobody", book=book)
 
 
 class TestShowAll:
@@ -135,7 +133,8 @@ class TestBirthday:
         assert handle_show_birthday("Alice", book=book) == "15.03.1990"
 
     def test_show_birthday_not_set(self, book: AddressBook) -> None:
-        assert handle_show_birthday("Alice", book=book) == "Birthday not set."
+        with pytest.raises(NotFoundError, match="Birthday not set"):
+            handle_show_birthday("Alice", book=book)
 
     def test_change_birthday(self, book: AddressBook) -> None:
         handle_add_birthday("Alice", "15.03.1990", book=book)
@@ -145,13 +144,12 @@ class TestBirthday:
     def test_remove_birthday(self, book: AddressBook) -> None:
         handle_add_birthday("Alice", "15.03.1990", book=book)
         assert handle_remove_birthday("Alice", book=book) == "Birthday removed."
-        assert handle_show_birthday("Alice", book=book) == "Birthday not set."
+        with pytest.raises(NotFoundError, match="Birthday not set"):
+            handle_show_birthday("Alice", book=book)
 
     def test_missing_contact(self, book: AddressBook) -> None:
-        assert (
+        with pytest.raises(NotFoundError, match="not found"):
             handle_add_birthday("Nobody", "15.03.1990", book=book)
-            == "Contact not found."
-        )
 
 
 class TestEmail:
@@ -163,7 +161,8 @@ class TestEmail:
         assert handle_show_email("Alice", book=book) == "a@b.com"
 
     def test_show_email_not_set(self, book: AddressBook) -> None:
-        assert handle_show_email("Alice", book=book) == "Email not set."
+        with pytest.raises(NotFoundError, match="Email not set"):
+            handle_show_email("Alice", book=book)
 
     def test_change_email(self, book: AddressBook) -> None:
         handle_add_email("Alice", "a@b.com", book=book)
@@ -173,7 +172,8 @@ class TestEmail:
     def test_remove_email(self, book: AddressBook) -> None:
         handle_add_email("Alice", "a@b.com", book=book)
         assert handle_remove_email("Alice", book=book) == "Email removed."
-        assert handle_show_email("Alice", book=book) == "Email not set."
+        with pytest.raises(NotFoundError, match="Email not set"):
+            handle_show_email("Alice", book=book)
 
 
 class TestSearch:

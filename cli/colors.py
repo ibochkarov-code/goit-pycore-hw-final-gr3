@@ -20,6 +20,7 @@ class ColorScheme:
     GREETING: str
     FAREWELL: str
     ROLE: str
+    SUCCESS: str
 
 
 _COLORED = ColorScheme(
@@ -36,6 +37,7 @@ _COLORED = ColorScheme(
     GREETING=Fore.GREEN + Style.BRIGHT,
     FAREWELL=Fore.GREEN + Style.BRIGHT,
     ROLE=Style.DIM,
+    SUCCESS=Fore.GREEN,
 )
 
 _PLAIN = ColorScheme(
@@ -52,6 +54,7 @@ _PLAIN = ColorScheme(
     GREETING="",
     FAREWELL="",
     ROLE="",
+    SUCCESS="",
 )
 
 

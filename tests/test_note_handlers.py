@@ -2,7 +2,7 @@
 
 import pytest
 
-from cli.errors import UsageError
+from cli.errors import AlreadyExistsError, NotFoundError, UsageError
 from handlers.note_handlers import (
     handle_add_note,
     handle_add_tags,
@@ -32,8 +32,8 @@ class TestAddNote:
         assert nb.notes[-1].text == "Learn Rust"
 
     def test_duplicate_title(self, nb: NoteBook) -> None:
-        result = handle_add_note("Shopping", "Other text", notebook=nb)
-        assert result == "Note 'Shopping' already exists."
+        with pytest.raises(AlreadyExistsError, match="already exists"):
+            handle_add_note("Shopping", "Other text", notebook=nb)
 
     def test_no_args_raises(self) -> None:
         with pytest.raises(UsageError, match="title and text are required"):
@@ -51,8 +51,8 @@ class TestDeleteNote:
         assert len(nb) == 1
 
     def test_not_found(self, nb: NoteBook) -> None:
-        result = handle_delete_note("Nonexistent", notebook=nb)
-        assert result == "Note 'Nonexistent' not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_delete_note("Nonexistent", notebook=nb)
 
     def test_no_args_raises(self) -> None:
         with pytest.raises(UsageError, match="title is required"):
@@ -66,8 +66,8 @@ class TestEditNote:
         assert nb.find_note_by_title("Shopping").text == "Updated text"
 
     def test_not_found(self, nb: NoteBook) -> None:
-        result = handle_edit_note("Nonexistent", "text", notebook=nb)
-        assert result == "Note 'Nonexistent' not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_edit_note("Nonexistent", "text", notebook=nb)
 
     def test_preserves_tags(self, nb: NoteBook) -> None:
         handle_edit_note("Work", "New", "text", notebook=nb)
@@ -86,12 +86,12 @@ class TestRenameNote:
         assert nb.find_note_by_title("Shopping") is None
 
     def test_not_found(self, nb: NoteBook) -> None:
-        result = handle_rename_note("Nonexistent", "New", notebook=nb)
-        assert result == "Note 'Nonexistent' not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_rename_note("Nonexistent", "New", notebook=nb)
 
     def test_target_exists(self, nb: NoteBook) -> None:
-        result = handle_rename_note("Shopping", "Work", notebook=nb)
-        assert "already exist" in result
+        with pytest.raises(AlreadyExistsError, match="already exist"):
+            handle_rename_note("Shopping", "Work", notebook=nb)
 
     def test_not_enough_args_raises(self) -> None:
         with pytest.raises(UsageError, match="title and new title are required"):
@@ -107,12 +107,12 @@ class TestAddTags:
         assert "weekly" in note.tags
 
     def test_not_found(self, nb: NoteBook) -> None:
-        result = handle_add_tags("Nonexistent", "tag", notebook=nb)
-        assert result == "Note 'Nonexistent' not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_add_tags("Nonexistent", "tag", notebook=nb)
 
     def test_invalid_tag(self, nb: NoteBook) -> None:
-        result = handle_add_tags("Shopping", "bad!tag", notebook=nb)
-        assert "Invalid tag" in result
+        with pytest.raises(ValueError, match="Invalid tag"):
+            handle_add_tags("Shopping", "bad!tag", notebook=nb)
 
     def test_not_enough_args_raises(self) -> None:
         with pytest.raises(UsageError, match="title and at least one tag"):
@@ -126,12 +126,12 @@ class TestRemoveTag:
         assert nb.find_note_by_title("Work").tags == []
 
     def test_tag_not_found(self, nb: NoteBook) -> None:
-        result = handle_remove_tag("Work", "nonexistent", notebook=nb)
-        assert "not found" in result
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_remove_tag("Work", "nonexistent", notebook=nb)
 
     def test_note_not_found(self, nb: NoteBook) -> None:
-        result = handle_remove_tag("Nonexistent", "tag", notebook=nb)
-        assert result == "Note 'Nonexistent' not found."
+        with pytest.raises(NotFoundError, match="not found"):
+            handle_remove_tag("Nonexistent", "tag", notebook=nb)
 
     def test_not_enough_args_raises(self) -> None:
         with pytest.raises(UsageError, match="title and tag are required"):
