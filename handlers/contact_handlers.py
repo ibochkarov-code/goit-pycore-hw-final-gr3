@@ -1,3 +1,5 @@
+from datetime import date
+
 from cli.colors import ColorScheme
 from cli.commands import command
 from cli.errors import AlreadyExistsError, NotFoundError, UsageError
@@ -244,9 +246,10 @@ def handle_birthdays(*args: str, book: AddressBook, colors: ColorScheme) -> str:
     if args:
         raise UsageError("no arguments expected")
 
+    today = date.today()
     upcoming = []
     for record in book.list_all():
-        days = record.days_to_birthday()
+        days = record.days_to_birthday(today)
         if days is not None and days <= 7:
             bday = record.birthday.value.strftime("%d.%m.%Y")
             upcoming.append((record.name.value, days, bday))

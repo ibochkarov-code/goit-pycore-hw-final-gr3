@@ -1,3 +1,4 @@
+import calendar
 from datetime import date
 
 from models.fields import Birthday, Email, Name, Phone
@@ -62,26 +63,21 @@ class Record:
         """Змінити дату народження контакту."""
         self.birthday = Birthday(new_birthday)
 
-    def days_to_birthday(self) -> int | None:
+    def days_to_birthday(self, today: date) -> int | None:
         """Повернути кількість днів до наступного дня народження контакту."""
         if not self.birthday:
             return None
-        bdate = self.birthday.value  # тип datetime.date
-        today = date.today()
-        # Обчислюємо найближчий день народження (цього року або наступного)
-        year = today.year
-        while True:
-            try:
-                next_bday = date(year, bdate.month, bdate.day)
-            except ValueError:
-                # Якщо дата народження 29 лютого, а рік не високосний
-                year += 1
-                continue
-            if next_bday < today:
-                year += 1
-                continue
-            break
-        return (next_bday - today).days
+        bday = self.birthday.value
+
+        def _anniversary(year: int) -> date:
+            if bday.month == 2 and bday.day == 29 and not calendar.isleap(year):
+                return date(year, 2, 28)
+            return date(year, bday.month, bday.day)
+
+        this_year = _anniversary(today.year)
+        if this_year >= today:
+            return (this_year - today).days
+        return (_anniversary(today.year + 1) - today).days
 
     def __str__(self) -> str:
         phones_str = (
