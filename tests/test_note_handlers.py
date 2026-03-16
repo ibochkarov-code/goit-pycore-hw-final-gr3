@@ -185,20 +185,24 @@ class TestAllTags:
 class TestNotesByTag:
     def test_groups_by_tag(self, colors: ColorScheme) -> None:
         nb = NoteBook()
-        nb.add_note("B", "text", tags="work")
-        nb.add_note("A", "text", tags="work personal")
-        nb.add_note("C", "text")
+        nb.add_note("B", "b-text", tags="work")
+        nb.add_note("A", "a-text", tags="work personal")
+        nb.add_note("C", "c-text")
         result = handle_notes_by_tag(notebook=nb, colors=colors)
-        lines = result.splitlines()
+        lines = [ln for ln in result.splitlines() if ln]  # skip blank separators
         # Tags sorted: personal, work, then untagged
         assert "personal" in lines[0]
-        assert "  A" in lines[1]
+        assert "A: a-text" in lines[1]
         assert "work" in lines[2]
         # Notes within work sorted: A, B
-        assert "  A" in lines[3]
-        assert "  B" in lines[4]
+        assert "A: a-text" in lines[3]
+        assert "B: b-text" in lines[4]
         assert "untagged" in lines[5]
-        assert "  C" in lines[6]
+        assert "C: c-text" in lines[6]
+        # All tag header lines have equal visible width
+        headers = [ln for ln in result.splitlines() if ln.startswith("──")]
+        stripped = [len(ln.strip()) for ln in headers]
+        assert len(set(stripped)) == 1
 
     def test_empty_notebook(self, colors: ColorScheme) -> None:
         result = handle_notes_by_tag(notebook=NoteBook(), colors=colors)

@@ -191,30 +191,44 @@ def handle_notes_by_tag(*args: str, notebook: NoteBook, colors: ColorScheme) -> 
     if len(notebook) == 0:
         return f"{colors.SUCCESS}No notes saved.{colors.RESET}"
 
-    tag_map: dict[str, list[str]] = defaultdict(list)
-    untagged: list[str] = []
+    tag_map: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    untagged: list[tuple[str, str]] = []
     for note in notebook.notes:
+        entry = (note.title, note.text)
         if note.tags:
             for tag in note.tags:
-                tag_map[tag].append(note.title)
+                tag_map[tag].append(entry)
         else:
-            untagged.append(note.title)
+            untagged.append(entry)
+
+    all_labels = list(tag_map) + (["untagged"] if untagged else [])
+    # Total visible width: "── label ───…" — fixed for all tags.
+    line_width = max(len(lbl) for lbl in all_labels) + 12 if all_labels else 0
+
+    def _tag_header(label: str, colored_label: str) -> str:
+        # "── " (3) + label + " " (1) + trailing "─"s
+        trail = line_width - 3 - len(label) - 1
+        sep = f"{colors.TABLE_SEP}{'─' * trail}{colors.RESET}"
+        return f"── {colored_label} {sep}"
+
+    def _note_line(title: str, text: str) -> str:
+        return f"  {colors.DATA_BRIGHT}{title}{colors.RESET}: {text}"
 
     lines: list[str] = []
     for tag in sorted(tag_map):
-        header = f"{colors.HEADER}{tag}{colors.RESET}"
-        sep = f"{colors.TABLE_SEP}{'─' * (len(tag) + 4)}{colors.RESET}"
-        lines.append(f"── {header} {sep}")
-        for title in sorted(tag_map[tag], key=str.lower):
-            lines.append(f"  {title}")
+        if lines:
+            lines.append("")
+        lines.append(_tag_header(tag, f"{colors.HEADER}{tag}{colors.RESET}"))
+        for title, text in sorted(tag_map[tag], key=lambda e: e[0].lower()):
+            lines.append(_note_line(title, text))
 
     if untagged:
-        label = "untagged"
-        header = f"{colors.HEADER}{label}{colors.RESET}"
-        sep = f"{colors.TABLE_SEP}{'─' * (len(label) + 4)}{colors.RESET}"
-        lines.append(f"── {header} {sep}")
-        for title in sorted(untagged, key=str.lower):
-            lines.append(f"  {title}")
+        if lines:
+            lines.append("")
+        label_colored = f"{colors.TABLE_SEP}untagged{colors.RESET}"
+        lines.append(_tag_header("untagged", label_colored))
+        for title, text in sorted(untagged, key=lambda e: e[0].lower()):
+            lines.append(_note_line(title, text))
 
     return "\n".join(lines)
 
