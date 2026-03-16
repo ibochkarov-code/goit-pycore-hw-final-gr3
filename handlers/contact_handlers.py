@@ -129,6 +129,7 @@ def handle_show_all(*args: str, book: AddressBook, colors: ColorScheme) -> str:
     records = book.list_all()
     if not records:
         return f"{colors.SUCCESS}No contacts saved.{colors.RESET}"
+    records.sort(key=lambda r: r.name.value.lower())
     return _format_contacts_table(records, colors)
 
 
@@ -238,6 +239,7 @@ def handle_search(*args: str, book: AddressBook, colors: ColorScheme) -> str:
     results = book.search(args[0])
     if not results:
         return f"{colors.SUCCESS}No contacts found.{colors.RESET}"
+    results.sort(key=lambda r: r.name.value.lower())
     return _format_contacts_table(results, colors)
 
 

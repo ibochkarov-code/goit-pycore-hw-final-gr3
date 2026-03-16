@@ -166,6 +166,7 @@ def handle_search_notes(*args: str, notebook: NoteBook, colors: ColorScheme) -> 
 
     if not results:
         return f"{colors.SUCCESS}No notes found.{colors.RESET}"
+    results.sort(key=lambda n: n.title.lower())
     return _format_notes_table(results, colors)
 
 
@@ -179,4 +180,5 @@ def handle_show_all_notes(*args: str, notebook: NoteBook, colors: ColorScheme) -
 
     if len(notebook) == 0:
         return f"{colors.SUCCESS}No notes saved.{colors.RESET}"
-    return _format_notes_table(notebook.notes, colors)
+    notes = sorted(notebook.notes, key=lambda n: n.title.lower())
+    return _format_notes_table(notes, colors)
