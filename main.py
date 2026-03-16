@@ -1,6 +1,7 @@
 import argparse
 import os
 from collections.abc import Callable
+from datetime import date, timedelta
 from functools import partial
 from typing import Any
 
@@ -146,16 +147,60 @@ def bootstrap_commands(
     }
 
 
+def _create_demo_data() -> tuple[AddressBook, NoteBook]:
+    """Create pre-populated address book and notebook with sample data."""
+    today = date.today()
+
+    def _bday(delta_days: int) -> str:
+        d = today + timedelta(days=delta_days)
+        return d.strftime("%d.%m.%Y")
+
+    book = AddressBook()
+    from models.record import Record
+
+    for name, phones, email, bday in [
+        ("Alice Johnson", ["0501234567", "0509876543"], "alice@example.com", _bday(3)),
+        ("Bob Smith", ["0671112233"], "bob@work.com", _bday(7)),
+        ("Charlie Brown", ["0931234567"], "charlie@mail.com", _bday(45)),
+        ("Diana Prince", ["0661234567", "0669876543"], "diana@hero.org", _bday(180)),
+        ("Eve Adams", ["0501111111"], None, _bday(1)),
+        ("Frank Miller", ["0672222222"], "frank@example.com", None),
+        ("Grace Lee", ["0933333333", "0934444444"], "grace@test.com", _bday(0)),
+    ]:
+        rec = Record(name, phones=phones, email=email, birthday=bday)
+        book.add_record(rec)
+
+    notebook = NoteBook()
+    for title, text, tags in [
+        ("Shopping", "Buy milk, eggs, and bread", "personal errands"),
+        ("Sprint goals", "Finish auth module and write tests", "work urgent"),
+        ("Book list", "Clean Code, Pragmatic Programmer", "personal reading"),
+        ("Meeting notes", "Discuss API design with the team", "work"),
+        ("Workout plan", "Mon: run, Wed: gym, Fri: swim", "personal health"),
+        ("Project ideas", "CLI tool for note management", "work ideas"),
+        ("Travel", "Plan summer vacation to Italy", None),
+    ]:
+        notebook.add_note(title, text, tags=tags)
+
+    return book, notebook
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=TITLE)
     parser.add_argument(
         "--no-color", action="store_true", help="disable colored output"
     )
+    parser.add_argument(
+        "--demo", action="store_true", help="start with sample demo data"
+    )
     args = parser.parse_args(argv)
 
     colors = make_scheme(no_color=args.no_color or "NO_COLOR" in os.environ)
-    book = load_contacts()
-    notebook = load_notes()
+    if args.demo:
+        book, notebook = _create_demo_data()
+    else:
+        book = load_contacts()
+        notebook = load_notes()
     commands = bootstrap_commands(colors, book, notebook)
 
     def on_save() -> None:
