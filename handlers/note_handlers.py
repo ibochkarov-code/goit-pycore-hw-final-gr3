@@ -170,6 +170,17 @@ def handle_search_notes(*args: str, notebook: NoteBook, colors: ColorScheme) -> 
     return _format_notes_table(results, colors)
 
 
+@command("Show all unique tags, sorted alphabetically.")
+def handle_all_tags(*args: str, notebook: NoteBook, colors: ColorScheme) -> str:
+    if args:
+        raise UsageError("no arguments expected")
+
+    tags = sorted({tag for note in notebook.notes for tag in note.tags})
+    if not tags:
+        return f"{colors.SUCCESS}No tags found.{colors.RESET}"
+    return f"{colors.SUCCESS}{', '.join(tags)}{colors.RESET}"
+
+
 @command("Show all notes.")
 def handle_show_all_notes(*args: str, notebook: NoteBook, colors: ColorScheme) -> str:
     """

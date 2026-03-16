@@ -7,6 +7,7 @@ from cli.errors import AlreadyExistsError, NotFoundError, UsageError
 from handlers.note_handlers import (
     handle_add_note,
     handle_add_tags,
+    handle_all_tags,
     handle_delete_note,
     handle_edit_note,
     handle_remove_tag,
@@ -155,6 +156,29 @@ class TestSearchNotes:
     def test_no_args_raises(self, colors: ColorScheme) -> None:
         with pytest.raises(UsageError, match="keyword is required"):
             handle_search_notes(notebook=NoteBook(), colors=colors)
+
+
+class TestAllTags:
+    def test_lists_tags_sorted(self, colors: ColorScheme) -> None:
+        nb = NoteBook()
+        nb.add_note("A", "text", tags="zebra alpha")
+        nb.add_note("B", "text", tags="beta alpha")
+        result = handle_all_tags(notebook=nb, colors=colors)
+        assert result == "alpha, beta, zebra"
+
+    def test_empty_notebook(self, colors: ColorScheme) -> None:
+        result = handle_all_tags(notebook=NoteBook(), colors=colors)
+        assert result == "No tags found."
+
+    def test_no_tags(self, colors: ColorScheme) -> None:
+        nb = NoteBook()
+        nb.add_note("A", "text")
+        result = handle_all_tags(notebook=nb, colors=colors)
+        assert result == "No tags found."
+
+    def test_with_args_raises(self, colors: ColorScheme) -> None:
+        with pytest.raises(UsageError, match="no arguments expected"):
+            handle_all_tags("x", notebook=NoteBook(), colors=colors)
 
 
 class TestShowAllNotes:

@@ -29,6 +29,7 @@ from handlers.contact_handlers import (
 from handlers.note_handlers import (
     handle_add_note,
     handle_add_tags,
+    handle_all_tags,
     handle_delete_note,
     handle_edit_note,
     handle_remove_tag,
@@ -139,6 +140,7 @@ def bootstrap_commands(
         "rename-note": _bind(handle_rename_note, notebook=notebook, colors=colors),
         "add-tags": _bind(handle_add_tags, notebook=notebook, colors=colors),
         "delete-tag": _bind(handle_remove_tag, notebook=notebook, colors=colors),
+        "all-tags": _bind(handle_all_tags, notebook=notebook, colors=colors),
     }
 
 
