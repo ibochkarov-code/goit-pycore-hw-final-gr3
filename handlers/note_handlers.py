@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from cli.colors import ColorScheme
 from cli.commands import command
 from cli.errors import AlreadyExistsError, NotFoundError, UsageError
@@ -179,6 +181,42 @@ def handle_all_tags(*args: str, notebook: NoteBook, colors: ColorScheme) -> str:
     if not tags:
         return f"{colors.SUCCESS}No tags found.{colors.RESET}"
     return f"{colors.SUCCESS}{', '.join(tags)}{colors.RESET}"
+
+
+@command("Show notes grouped by tag.")
+def handle_notes_by_tag(*args: str, notebook: NoteBook, colors: ColorScheme) -> str:
+    if args:
+        raise UsageError("no arguments expected")
+
+    if len(notebook) == 0:
+        return f"{colors.SUCCESS}No notes saved.{colors.RESET}"
+
+    tag_map: dict[str, list[str]] = defaultdict(list)
+    untagged: list[str] = []
+    for note in notebook.notes:
+        if note.tags:
+            for tag in note.tags:
+                tag_map[tag].append(note.title)
+        else:
+            untagged.append(note.title)
+
+    lines: list[str] = []
+    for tag in sorted(tag_map):
+        header = f"{colors.HEADER}{tag}{colors.RESET}"
+        sep = f"{colors.TABLE_SEP}{'─' * (len(tag) + 4)}{colors.RESET}"
+        lines.append(f"── {header} {sep}")
+        for title in sorted(tag_map[tag], key=str.lower):
+            lines.append(f"  {title}")
+
+    if untagged:
+        label = "untagged"
+        header = f"{colors.HEADER}{label}{colors.RESET}"
+        sep = f"{colors.TABLE_SEP}{'─' * (len(label) + 4)}{colors.RESET}"
+        lines.append(f"── {header} {sep}")
+        for title in sorted(untagged, key=str.lower):
+            lines.append(f"  {title}")
+
+    return "\n".join(lines)
 
 
 @command("Show all notes.")

@@ -10,6 +10,7 @@ from handlers.note_handlers import (
     handle_all_tags,
     handle_delete_note,
     handle_edit_note,
+    handle_notes_by_tag,
     handle_remove_tag,
     handle_rename_note,
     handle_search_notes,
@@ -179,6 +180,33 @@ class TestAllTags:
     def test_with_args_raises(self, colors: ColorScheme) -> None:
         with pytest.raises(UsageError, match="no arguments expected"):
             handle_all_tags("x", notebook=NoteBook(), colors=colors)
+
+
+class TestNotesByTag:
+    def test_groups_by_tag(self, colors: ColorScheme) -> None:
+        nb = NoteBook()
+        nb.add_note("B", "text", tags="work")
+        nb.add_note("A", "text", tags="work personal")
+        nb.add_note("C", "text")
+        result = handle_notes_by_tag(notebook=nb, colors=colors)
+        lines = result.splitlines()
+        # Tags sorted: personal, work, then untagged
+        assert "personal" in lines[0]
+        assert "  A" in lines[1]
+        assert "work" in lines[2]
+        # Notes within work sorted: A, B
+        assert "  A" in lines[3]
+        assert "  B" in lines[4]
+        assert "untagged" in lines[5]
+        assert "  C" in lines[6]
+
+    def test_empty_notebook(self, colors: ColorScheme) -> None:
+        result = handle_notes_by_tag(notebook=NoteBook(), colors=colors)
+        assert result == "No notes saved."
+
+    def test_with_args_raises(self, colors: ColorScheme) -> None:
+        with pytest.raises(UsageError, match="no arguments expected"):
+            handle_notes_by_tag("x", notebook=NoteBook(), colors=colors)
 
 
 class TestShowAllNotes:
